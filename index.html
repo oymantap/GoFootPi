@@ -1,58 +1,27 @@
 <!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>Pencari Pemain Rycl</title>
-    <style>
-        body { font-family: sans-serif; padding: 20px; }
-        .card { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 8px; }
-    </style>
-</head>
+<html>
 <body>
-
-    <h1>Cari Pemain</h1>
-    <input type="text" id="searchInput" placeholder="Masukkan nama pemain...">
-    <button onclick="cariPemain()">Cari</button>
-    
-    <div id="container" style="margin-top: 20px;"></div>
+    <input type="text" id="s" placeholder="Cari pemain...">
+    <button onclick="cari()">Cari</button>
+    <div id="res"></div>
 
     <script>
-function cariPemain() {
-    const query = document.getElementById('searchInput').value;
-    const container = document.getElementById('container');
-    container.innerHTML = 'Mencari...';
+    function cari() {
+        const val = document.getElementById('s').value;
+        const out = document.getElementById('res');
+        out.innerHTML = "Mencari...";
 
-    fetch('https://gofootpi.42web.io/api.php?tier=free&search=' + encodeURIComponent(query))
-        .then(response => {
-            // Kita cek status respons-nya dulu
-            if (!response.ok) {
-                container.innerHTML = "Error Server: " + response.status;
-                return;
-            }
-            return response.text(); // Ambil sebagai teks supaya kita bisa "intip" isinya
-        })
-        .then(text => {
-            // Tampilkan isinya di layar supaya kita tahu apakah ada iklannya atau JSON murni
-            container.innerHTML = "<strong>Data diterima:</strong> <pre>" + text + "</pre>";
-            
-            // Coba parse (ini cuma buat mastiin)
-            try {
-                const res = JSON.parse(text);
-                if (res.data.length > 0) {
-                    container.innerHTML = "Ditemukan " + res.data.length + " pemain.";
-                    // Nanti kita tambahin lagi tampilannya kalau ini sudah berhasil
-                } else {
-                    container.innerHTML = "Data kosong.";
-                }
-            } catch(e) {
-                container.innerHTML += "<br><strong>Error Parsing:</strong> Gagal mengubah teks jadi JSON. Mungkin ada iklan hosting.";
-            }
-        })
-        .catch(err => {
-            container.innerHTML = 'Error koneksi: ' + err.message;
-        });
-}
+        fetch('https://gofootpi.42web.io/api.php?search=' + encodeURIComponent(val))
+            .then(r => r.json())
+            .then(d => {
+                out.innerHTML = "";
+                if(d.data.length === 0) { out.innerHTML = "Tidak ada data."; return; }
+                d.data.forEach(p => {
+                    out.innerHTML += `<p>${p.name} - ${p.club} (${p.market_value})</p>`;
+                });
+            })
+            .catch(e => out.innerHTML = "Gagal total: " + e);
+    }
     </script>
 </body>
 </html>
-
